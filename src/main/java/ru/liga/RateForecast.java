@@ -12,13 +12,17 @@ import java.util.ArrayList;
 public class RateForecast {
 
     public static void main(String[] args ) {
-        int amountOfDays = 7;
-        ArrayList<String[]> newForecast;
-        String[] currencies = {"EURO", "TRY", "USD"}; //todo создать enum
+        int amountOfForecastDays = 7;
+        String[] currencies = Currencies.getNames(Currencies.class);
 
-        for (String currency: currencies) { //todo создать приватный метод
-            newForecast = readCSV(currency, amountOfDays);
-            doForecast(newForecast, currency);
+        forecast(currencies, amountOfForecastDays);
+    }
+
+    private static void forecast(String[] currencies, int amountOfForecastDays) {
+        ArrayList<String[]> newForecast;
+        for (String currency: currencies) {
+            newForecast = readCSV(currency, amountOfForecastDays);
+            doForecast(newForecast, currency, amountOfForecastDays);
         }
     }
 

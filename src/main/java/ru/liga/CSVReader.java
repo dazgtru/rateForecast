@@ -14,26 +14,23 @@ public class CSVReader {
      * @return - возвращает список массива строк.
      */
     public static ArrayList<String[]> readCSV(String currencyCode, int amountOfDays) {
-        String filePath = "target/classes/" + currencyCode + ".csv"; //todo используй MessageFormat.format()
+        String filePath = MessageFormat.format("target/classes/{0}.csv", currencyCode);
         ArrayList<String[]> csvLines = new ArrayList<>();
         ArrayList<String[]> sortedForecasts = new ArrayList<>();
 
-        try {
-            //todo
-            // 1 - название лучше не сокращать, а писать полное название
-            // 2 - BufferedReader не закрыл) т.е. br.close()
-            // 3 - вытекает из предыдущего используй try-with-resources
-            BufferedReader br = new BufferedReader(new FileReader((filePath)));
-            br.readLine();
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader((filePath)))) {
+            bufferedReader.readLine();
 
             for (int i = 0; i < amountOfDays; i++) {
-                csvLines.add(br.readLine().split(";"));
+                csvLines.add(bufferedReader.readLine().split(";"));
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
-        for (int i = csvLines.size()-1; i >= (csvLines.size()-1); i--) {  //todo  csvLines.size()-1 - в отдельную переменную, csvLines.size()-1 - в отдельную переменную -- так как вообще не понятно что тут происходит
+        int indexOfLastLine = csvLines.size()-1;
+        int indexOfFirstLine = indexOfLastLine - amountOfDays;
+        for (int i = indexOfLastLine; i > indexOfFirstLine; i--) {
             sortedForecasts.add(csvLines.get(i));
         }
         return sortedForecasts;

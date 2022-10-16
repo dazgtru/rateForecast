@@ -1,5 +1,6 @@
 package ru.liga;
 
+import java.text.MessageFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
@@ -8,32 +9,40 @@ import java.util.Locale;
 
 public class Forecast {
     final private static LocalDate TODAY = LocalDate.now();
-    final private static DateTimeFormatter DATE_TIME_FORMATTER = //todo перенеос излищен
-            DateTimeFormatter.ofPattern("dd.MM.yyyy");
+    final private static DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
     /**
      * Метод производит прогноз курса валюты на основе принятых данных.
-     * @param oldRates - список массивов строк с последними датами, курсами валюты и наименованием валюты.
+     * @param csvList - список массивов строк с последними датами, курсами валюты и наименованием валюты.
      * @param currencyCode - код валюты.
      */
-    public static void doForecast(ArrayList<String[]> oldRates, String currencyCode) {
-        LocalDate dateOfForecast = LocalDate.parse(oldRates.get(oldRates.size()-1)[1], //todo  oldRates.size()-1 в отдельную переменную;  1 -  в отдельную переменную и назвать что она означает
-                DATE_TIME_FORMATTER);
-        ArrayList<Double> onlyRate = new ArrayList<>();
+    public static void doForecast(ArrayList<String[]> csvList, String currencyCode, int amountOfForecastDays) {
+        int indexOfFirstLine;
+        int indexOfLastLine;
+        int indexOfDatesColumn = 1;
+        int indexOfRatesColumn = 2;
+        int nextDay = 1;
+
+        indexOfLastLine = csvList.size()-1;
+        LocalDate dateOfForecast = LocalDate.parse(csvList.get(indexOfLastLine)[indexOfDatesColumn], DATE_TIME_FORMATTER);
+        ArrayList<Double> onlyRates = new ArrayList<>();
         Double rateOfForecast;
 
-        for (String[] oldRate : oldRates) {
-            onlyRate.add(Double.valueOf(oldRate[2].replace(",", "."))); //todo  2 -  в отдельную переменную и назвать что она означает
+        for (String[] oldRate : csvList) {
+            onlyRates.add(Double.valueOf(oldRate[indexOfRatesColumn].replace(",", ".")));
         }
 
-        while (!dateOfForecast.isEqual(TODAY.plusDays(7))) { //todo  7 -  в отдельную переменную и назвать что она означает
+        while (!dateOfForecast.isEqual(TODAY.plusDays(amountOfForecastDays))) {
             rateOfForecast = 0.0;
-            for (int i = onlyRate.size()-7; i < onlyRate.size(); i++) { //todo -  в отдельную переменную и назвать что она означает
-                rateOfForecast += onlyRate.get(i);
+            indexOfFirstLine = onlyRates.size() - amountOfForecastDays;
+            indexOfLastLine = onlyRates.size()-1;
+
+            for (int i = indexOfFirstLine; i <= indexOfLastLine; i++) {
+                rateOfForecast += onlyRates.get(i);
             }
-            rateOfForecast /= 7;
-            onlyRate.add(rateOfForecast);
-            dateOfForecast = dateOfForecast.plusDays(1); //todo -  в отдельную переменную и назвать что она означает
+            rateOfForecast /= amountOfForecastDays;
+            onlyRates.add(rateOfForecast);
+            dateOfForecast = dateOfForecast.plusDays(nextDay);
 
             if (dateOfForecast.isAfter(TODAY))
                 printForecast(dateOfForecast, currencyCode, rateOfForecast);
@@ -52,12 +61,13 @@ public class Forecast {
         String dayOfWeek = dateOfForecast.getDayOfWeek().getDisplayName(TextStyle.NARROW, localeRu);
         String formattedRate = String.format("%.2f", rateOfForecast);
         String formattedDate = dateOfForecast.format(DATE_TIME_FORMATTER);
+        int nextDay = 1;
 
-        if (dateOfForecast.isEqual(TODAY.plusDays(1))) { //todo -  в отдельную переменную и назвать что она означает
+        if (dateOfForecast.isEqual(TODAY.plusDays(nextDay))) {
             System.out.println("rate " + currencyCode + " tomorrow "+ dayOfWeek + " "
                     + formattedDate + " - " + formattedRate);
-            System.out.println("rate " + currencyCode + " week"); //todo используй MessageFormat.format()
+            System.out.println(MessageFormat.format("rate {0} week", currencyCode));
         }
-        System.out.println("\t" + dayOfWeek  + " " + formattedDate + " - " + formattedRate); //todo используй MessageFormat.format()
+        System.out.println(MessageFormat.format("\t {0} {1} {2}", dayOfWeek, formattedDate, formattedRate));
     }
 }
